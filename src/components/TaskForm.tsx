@@ -89,7 +89,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+  const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addTag();
@@ -116,7 +116,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
@@ -252,7 +252,9 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
                 <input
                   type="text"
                   value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setTagInput(e.target.value)
+                  }
                   onKeyPress={handleTagKeyPress}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Add a tag and press Enter"
