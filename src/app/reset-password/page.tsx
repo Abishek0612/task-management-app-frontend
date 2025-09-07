@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -19,7 +19,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ResetPasswordData } from "@/types";
 import toast from "react-hot-toast";
 
-export default function ResetPasswordPage() {
+// Create a separate component for the form that uses useSearchParams
+function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -61,8 +62,11 @@ export default function ResetPasswordPage() {
       login(response.token, response.user);
       toast.success("Password reset successful! Welcome back!");
       router.push("/dashboard");
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Password reset failed";
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error && "response" in error
+          ? (error as any).response?.data?.message || error.message
+          : "Password reset failed";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -291,5 +295,26 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function LoadingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
