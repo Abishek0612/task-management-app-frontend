@@ -77,7 +77,7 @@ Real-time stats updates
 ```bash
 git clone < https://github.com/Abishek0612/task-management-app-frontend.git >
 
-Vercel liv deployment URL -  https://task-management-app-frontend-avvm-9pbbcrdw8.vercel.app/
+Vercel liv deployment URL -  https://task-management-app-frontend-avvm.vercel.app/
 cd frontend
 npm install (install node modules)
 
