@@ -32,6 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (token: string, userData: User) => {
     Cookies.set("token", token, { expires: 7 });
     setUser(userData);
+
+    const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+    if (
+      redirectUrl &&
+      redirectUrl !== "/login" &&
+      redirectUrl !== "/register" &&
+      redirectUrl !== "/forgot-password" &&
+      redirectUrl !== "/reset-password"
+    ) {
+      sessionStorage.removeItem("redirectAfterLogin");
+      router.push(redirectUrl);
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const logout = async () => {
@@ -40,14 +54,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       Cookies.remove("token");
       setUser(null);
+      sessionStorage.removeItem("redirectAfterLogin");
 
-      authApi.logout().catch(console.error);
+      authApi.logout().catch((error) => {
+        console.error("Server logout failed:", error);
+      });
 
       toast.success("Logged out successfully");
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Error during logout");
+      toast.success("Logged out successfully");
+      router.push("/login");
     } finally {
       setIsLoggingOut(false);
     }
@@ -62,9 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      let timeoutId: NodeJS.Timeout | undefined = undefined;
+
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        timeoutId = setTimeout(() => controller.abort(), 5000);
 
         const response = await authApi.getCurrentUser();
         clearTimeout(timeoutId);
@@ -73,18 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error: any) {
         console.error("Failed to load user:", error);
 
-        if (error.response?.status === 401 || error.name === "AbortError") {
+        if (error.response?.status === 401) {
           Cookies.remove("token");
           if (
             typeof window !== "undefined" &&
-            !window.location.pathname.includes("/login")
+            !window.location.pathname.includes("/login") &&
+            !window.location.pathname.includes("/register")
           ) {
-            if (error.name !== "AbortError") {
-              toast.error("Session expired. Please login again.");
-            }
+            toast.error("Session expired. Please login again.");
           }
         }
       } finally {
+        if (timeoutId) clearTimeout(timeoutId);
         setIsLoading(false);
       }
     };

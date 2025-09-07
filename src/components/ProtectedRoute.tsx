@@ -1,29 +1,35 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({
+  children,
+  requireAuth = true,
+}: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && requireAuth && !user) {
+      sessionStorage.setItem("redirectAfterLogin", pathname);
       router.push("/login");
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, pathname, requireAuth]);
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (!user) {
+  if (requireAuth && !user) {
     return null;
   }
 

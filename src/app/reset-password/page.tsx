@@ -18,6 +18,7 @@ import { authApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ResetPasswordData } from "@/types";
 import toast from "react-hot-toast";
+import PublicRoute from "@/components/PublicRoute";
 
 function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -84,29 +85,31 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full text-center"
-        >
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Invalid Reset Link
-            </h1>
-            <p className="text-gray-600 mb-6">
-              This password reset link is invalid or has expired.
-            </p>
-            <Link
-              href="/forgot-password"
-              className="inline-flex items-center bg-red-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-600 transition-colors"
-            >
-              Request New Reset Link
-            </Link>
-          </div>
-        </motion.div>
-      </div>
+      <PublicRoute>
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full text-center"
+          >
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Invalid Reset Link
+              </h1>
+              <p className="text-gray-600 mb-6">
+                This password reset link is invalid or has expired.
+              </p>
+              <Link
+                href="/forgot-password"
+                className="inline-flex items-center bg-red-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Request New Reset Link
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </PublicRoute>
     );
   }
 
