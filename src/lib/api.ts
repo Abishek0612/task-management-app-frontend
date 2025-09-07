@@ -16,9 +16,14 @@ import { cookies } from "./cookies";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+console.log("API_BASE_URL:", API_BASE_URL);
+console.log("Raw env var:", process.env.NEXT_PUBLIC_API_URL);
+console.log("Final API_BASE_URL:", API_BASE_URL);
+console.log("All env vars:", process.env);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 8000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -26,6 +31,10 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    const baseURL = config.baseURL || "";
+    const url = config.url || "";
+    console.log("Making request to:", baseURL + url);
+
     const token = cookies.get("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -36,8 +45,16 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("Response received:", response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error(
+      "API Error:",
+      error.config?.url,
+      error.response?.status || error.message
+    );
     if (
       error.response?.status === 401 &&
       !error.config?.url?.includes("/logout") &&
@@ -78,7 +95,9 @@ export const authApi = {
     return response.data;
   },
 
-  updateProfile: async (data: any) => {
+  updateProfile: async (
+    data: Partial<{ name: string; preferences: object; avatar: string }>
+  ) => {
     const response = await api.put("/auth/profile", data);
     return response.data;
   },
@@ -101,7 +120,7 @@ export const tasksApi = {
   }): Promise<TasksResponse> => {
     const cleanParams = Object.fromEntries(
       Object.entries(params).filter(
-        ([_, value]) => value !== "" && value !== undefined
+        ([, value]) => value !== "" && value !== undefined
       )
     );
 
