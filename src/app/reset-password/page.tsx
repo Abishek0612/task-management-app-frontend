@@ -1,51 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Eye,
   EyeOff,
-  Mail,
   Lock,
-  User,
   ArrowRight,
   Loader2,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import { authApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { RegisterData } from "@/types";
+import { ResetPasswordData } from "@/types";
 import toast from "react-hot-toast";
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
+  const token = searchParams.get("token");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<RegisterData & { confirmPassword: string }>();
+  } = useForm<{ password: string; confirmPassword: string }>();
 
   const password = watch("password");
 
-  const onSubmit = async (data: RegisterData & { confirmPassword: string }) => {
+  useEffect(() => {
+    if (!token) {
+      toast.error("Invalid or missing reset token");
+      router.push("/forgot-password");
+    }
+  }, [token, router]);
+
+  const onSubmit = async (data: {
+    password: string;
+    confirmPassword: string;
+  }) => {
+    if (!token) return;
+
     setIsLoading(true);
     try {
-      const { confirmPassword, ...registerData } = data;
-      const response = await authApi.register(registerData);
+      const resetData: ResetPasswordData = {
+        token,
+        password: data.password,
+      };
+
+      const response = await authApi.resetPassword(resetData);
       login(response.token, response.user);
-      toast.success("Account created successfully! Welcome to TaskFlow!");
+      toast.success("Password reset successful! Welcome back!");
       router.push("/dashboard");
     } catch (error: any) {
-      const message = error.response?.data?.message || "Registration failed";
+      const message = error.response?.data?.message || "Password reset failed";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -62,8 +79,36 @@ export default function RegisterPage() {
     { test: (pwd: string) => /\d/.test(pwd), text: "One number" },
   ];
 
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full text-center"
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Invalid Reset Link
+            </h1>
+            <p className="text-gray-600 mb-6">
+              This password reset link is invalid or has expired.
+            </p>
+            <Link
+              href="/forgot-password"
+              className="inline-flex items-center bg-red-500 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-600 transition-colors"
+            >
+              Request New Reset Link
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -71,18 +116,16 @@ export default function RegisterPage() {
         className="max-w-md w-full"
       >
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-12 text-center">
+          <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-12 text-center">
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
             >
               <h1 className="text-3xl font-bold text-white mb-2">
-                Join TaskFlow
+                Reset Password
               </h1>
-              <p className="text-purple-100">
-                Create your account and start organizing
-              </p>
+              <p className="text-green-100">Choose a new secure password</p>
             </motion.div>
           </div>
 
@@ -94,79 +137,7 @@ export default function RegisterPage() {
                 transition={{ delay: 0.3 }}
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    {...register("name", {
-                      required: "Name is required",
-                      minLength: {
-                        value: 2,
-                        message: "Name must be at least 2 characters",
-                      },
-                      pattern: {
-                        value: /^[a-zA-Z\s]+$/,
-                        message: "Name can only contain letters and spaces",
-                      },
-                    })}
-                    type="text"
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                {errors.name && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-1 text-sm text-red-600"
-                  >
-                    {errors.name.message}
-                  </motion.p>
-                )}
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: {
-                        value: /^\S+@\S+$/i,
-                        message: "Please enter a valid email",
-                      },
-                    })}
-                    type="email"
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter your email"
-                  />
-                </div>
-                {errors.email && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="mt-1 text-sm text-red-600"
-                  >
-                    {errors.email.message}
-                  </motion.p>
-                )}
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
+                  New Password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -184,8 +155,8 @@ export default function RegisterPage() {
                       },
                     })}
                     type={showPassword ? "text" : "password"}
-                    className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Create a strong password"
+                    className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Enter your new password"
                   />
                   <button
                     type="button"
@@ -242,10 +213,10 @@ export default function RegisterPage() {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.4 }}
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Confirm Password
+                  Confirm New Password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -256,8 +227,8 @@ export default function RegisterPage() {
                         value === password || "The passwords do not match",
                     })}
                     type={showConfirmPassword ? "text" : "password"}
-                    className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Confirm your password"
+                    className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Confirm your new password"
                   />
                   <button
                     type="button"
@@ -285,18 +256,18 @@ export default function RegisterPage() {
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    Create Account
+                    Reset Password
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
@@ -306,18 +277,15 @@ export default function RegisterPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.6 }}
               className="mt-8 text-center"
             >
-              <p className="text-gray-600">
-                Already have an account?{" "}
-                <Link
-                  href="/login"
-                  className="font-semibold text-purple-600 hover:text-purple-500 transition-colors"
-                >
-                  Sign in
-                </Link>
-              </p>
+              <Link
+                href="/login"
+                className="text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Back to Sign In
+              </Link>
             </motion.div>
           </div>
         </div>

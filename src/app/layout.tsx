@@ -16,11 +16,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning={true}>
         <ReactQueryProvider>
           <AuthProvider>
             {children}
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: "#363636",
+                  color: "#fff",
+                },
+              }}
+            />
           </AuthProvider>
         </ReactQueryProvider>
       </body>

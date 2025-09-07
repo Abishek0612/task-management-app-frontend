@@ -3,13 +3,16 @@ export interface User {
   name: string;
   email: string;
   preferences?: {
-    theme: string;
+    theme: "light" | "dark" | "system";
     notifications: {
       email: boolean;
       push: boolean;
     };
-    taskView: string;
+    taskView: "list" | "grid" | "kanban";
   };
+  avatar?: string;
+  lastLogin?: string;
+  isEmailVerified?: boolean;
 }
 
 export interface Task {
@@ -44,9 +47,7 @@ export interface CreateTaskData {
   dueDate?: string;
 }
 
-export interface UpdateTaskData extends Partial<CreateTaskData> {
-  _id: string;
-}
+export interface UpdateTaskData extends Partial<CreateTaskData> {}
 
 export interface TasksResponse {
   tasks: Task[];
@@ -71,8 +72,33 @@ export interface RegisterData {
   password: string;
 }
 
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  password: string;
+}
+
 export interface AuthResponse {
+  success: boolean;
   message: string;
   token: string;
   user: User;
+}
+
+export interface ApiError {
+  success: false;
+  message: string;
+  errors?: Array<{
+    field: string;
+    message: string;
+    value: any;
+  }>;
+}
+
+export interface LoadingState {
+  isLoading: boolean;
+  error: string | null;
 }

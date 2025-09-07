@@ -14,8 +14,11 @@ export default function ReactQueryProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
             retry: 1,
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
           },
         },
       })
@@ -24,7 +27,9 @@ export default function ReactQueryProvider({
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === "development" && (
+        <ReactQueryDevtools initialIsOpen={false} />
+      )}
     </QueryClientProvider>
   );
 }

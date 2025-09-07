@@ -3,6 +3,8 @@ import {
   AuthResponse,
   LoginData,
   RegisterData,
+  ForgotPasswordData,
+  ResetPasswordData,
   TasksResponse,
   Task,
   CreateTaskData,
@@ -16,7 +18,10 @@ const API_BASE_URL =
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 8000,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 api.interceptors.request.use(
@@ -25,40 +30,21 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log(
-      "API Request:",
-      config.method?.toUpperCase(),
-      config.url,
-      config.params
-    );
     return config;
   },
-  (error) => {
-    console.error("Request error:", error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => {
-    console.log(
-      "API Response:",
-      response.config.url,
-      response.status,
-      response.data
-    );
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error(
-      "API Error:",
-      error.response?.status,
-      error.response?.data,
-      error.config?.url
-    );
-    if (error.response?.status === 401) {
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes("/logout") &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.includes("/login")
+    ) {
       cookies.remove("token");
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
@@ -75,8 +61,30 @@ export const authApi = {
     return response.data;
   },
 
+  forgotPassword: async (
+    data: ForgotPasswordData
+  ): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post("/auth/forgot-password", data);
+    return response.data;
+  },
+
+  resetPassword: async (data: ResetPasswordData): Promise<AuthResponse> => {
+    const response = await api.post("/auth/reset-password", data);
+    return response.data;
+  },
+
   getCurrentUser: async () => {
     const response = await api.get("/auth/me");
+    return response.data;
+  },
+
+  updateProfile: async (data: any) => {
+    const response = await api.put("/auth/profile", data);
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await api.post("/auth/logout");
     return response.data;
   },
 };
@@ -87,6 +95,7 @@ export const tasksApi = {
     limit?: number;
     search?: string;
     status?: string;
+    priority?: string;
     sortBy?: string;
     sortOrder?: string;
   }): Promise<TasksResponse> => {
@@ -96,7 +105,6 @@ export const tasksApi = {
       )
     );
 
-    console.log("Getting tasks with params:", cleanParams);
     const response = await api.get("/tasks", { params: cleanParams });
     return response.data;
   },
