@@ -19,7 +19,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ResetPasswordData } from "@/types";
 import toast from "react-hot-toast";
 
-// Create a separate component for the form that uses useSearchParams
 function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -298,7 +297,6 @@ function ResetPasswordForm() {
   );
 }
 
-// Loading component for Suspense fallback
 function LoadingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
@@ -310,7 +308,6 @@ function LoadingPage() {
   );
 }
 
-// Main page component with Suspense boundary
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<LoadingPage />}>
