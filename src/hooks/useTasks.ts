@@ -24,9 +24,11 @@ export function useTasks(
       }
       return failureCount < 2;
     },
-    onError: (error: any) => {
-      console.error("Tasks query error:", error);
-      toast.error("Failed to load tasks");
+    meta: {
+      onError: (error: any) => {
+        console.error("Tasks query error:", error);
+        toast.error("Failed to load tasks");
+      },
     },
   });
 }
@@ -36,6 +38,12 @@ export function useTask(id: string) {
     queryKey: ["task", id],
     queryFn: () => tasksApi.getTask(id),
     enabled: !!id,
+    meta: {
+      onError: (error: any) => {
+        console.error("Task query error:", error);
+        toast.error("Failed to load task");
+      },
+    },
   });
 }
 
@@ -45,6 +53,12 @@ export function useTaskStats() {
     queryFn: () => tasksApi.getStats(),
     staleTime: 60000,
     retry: 2,
+    meta: {
+      onError: (error: any) => {
+        console.error("Task stats query error:", error);
+        toast.error("Failed to load task stats");
+      },
+    },
   });
 }
 

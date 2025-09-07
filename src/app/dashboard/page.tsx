@@ -46,7 +46,22 @@ export default function DashboardPage() {
     ]
   );
 
-  const { data: tasksData, isLoading, error, refetch } = useTasks(queryParams);
+  const {
+    data: tasksData = {
+      tasks: [],
+      pagination: {
+        totalTasks: 0,
+        totalPages: 1,
+        currentPage: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+        limit: 12,
+      },
+    },
+    isLoading,
+    error,
+    refetch,
+  } = useTasks(queryParams);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -106,7 +121,7 @@ export default function DashboardPage() {
                 <div className="flex items-center space-x-4">
                   <h2 className="text-lg font-semibold text-gray-900">Tasks</h2>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {tasksData?.pagination?.totalTasks || 0} total
+                    {tasksData.pagination.totalTasks || 0} total
                   </span>
                 </div>
 
@@ -297,7 +312,7 @@ export default function DashboardPage() {
                     Try Again
                   </button>
                 </div>
-              ) : !tasksData?.tasks?.length ? (
+              ) : !tasksData.tasks.length ? (
                 <div className="text-center py-12">
                   <div className="text-gray-400 mb-4">
                     <svg
@@ -345,7 +360,7 @@ export default function DashboardPage() {
                         : "grid-cols-1"
                     }`}
                   >
-                    {tasksData.tasks.map((task) => (
+                    {tasksData.tasks.map((task: Task) => (
                       <TaskCard
                         key={task._id}
                         task={task}
@@ -355,25 +370,25 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
-                  {tasksData.pagination?.totalPages > 1 && (
+                  {tasksData.pagination.totalPages > 1 && (
                     <div className="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                       <div className="text-sm text-gray-700">
                         Showing{" "}
                         <span className="font-medium">
                           {(currentPage - 1) *
-                            (tasksData.pagination?.limit || 12) +
+                            (tasksData.pagination.limit || 12) +
                             1}
                         </span>{" "}
                         to{" "}
                         <span className="font-medium">
                           {Math.min(
-                            currentPage * (tasksData.pagination?.limit || 12),
-                            tasksData.pagination?.totalTasks || 0
+                            currentPage * (tasksData.pagination.limit || 12),
+                            tasksData.pagination.totalTasks || 0
                           )}
                         </span>{" "}
                         of{" "}
                         <span className="font-medium">
-                          {tasksData.pagination?.totalTasks || 0}
+                          {tasksData.pagination.totalTasks || 0}
                         </span>{" "}
                         results
                       </div>
@@ -381,7 +396,7 @@ export default function DashboardPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={!tasksData.pagination?.hasPrevPage}
+                          disabled={!tasksData.pagination.hasPrevPage}
                           className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           Previous
@@ -391,13 +406,13 @@ export default function DashboardPage() {
                           {Array.from(
                             {
                               length: Math.min(
-                                tasksData.pagination?.totalPages || 1,
+                                tasksData.pagination.totalPages || 1,
                                 5
                               ),
                             },
                             (_, i) => {
                               const totalPages =
-                                tasksData.pagination?.totalPages || 1;
+                                tasksData.pagination.totalPages || 1;
                               let page;
 
                               if (totalPages <= 5) {
@@ -431,7 +446,7 @@ export default function DashboardPage() {
 
                         <button
                           onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={!tasksData.pagination?.hasNextPage}
+                          disabled={!tasksData.pagination.hasNextPage}
                           className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           Next

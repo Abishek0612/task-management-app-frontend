@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
                 transition={{ delay: 0.3 }}
               >
                 <p className="text-gray-600 mb-6">
-                  We've sent password reset instructions to{" "}
+                  We&apos;ve sent password reset instructions to
                   <span className="font-semibold text-gray-900">
                     {getValues("email")}
                   </span>
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                   <h3 className="font-semibold text-blue-900 mb-2">
-                    What's next?
+                    What&apos;s next?
                   </h3>
                   <ul className="text-sm text-blue-800 space-y-1 text-left">
                     <li>• Check your email inbox (and spam folder)</li>
